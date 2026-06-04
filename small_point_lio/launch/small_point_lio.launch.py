@@ -21,6 +21,15 @@ def generate_launch_description():
     tf_parent_frame_arg = DeclareLaunchArgument("tf_parent_frame", default_value="base_link")
     tf_child_frame_arg = DeclareLaunchArgument("tf_child_frame", default_value="livox_frame")
 
+    mid2_tf_x_arg = DeclareLaunchArgument("mid2_tf_x", default_value="0.0")
+    mid2_tf_y_arg = DeclareLaunchArgument("mid2_tf_y", default_value="0.0")
+    mid2_tf_z_arg = DeclareLaunchArgument("mid2_tf_z", default_value="0.0")
+    mid2_tf_roll_arg = DeclareLaunchArgument("mid2_tf_roll", default_value="0.0")
+    mid2_tf_pitch_arg = DeclareLaunchArgument("mid2_tf_pitch", default_value="0.0")
+    mid2_tf_yaw_arg = DeclareLaunchArgument("mid2_tf_yaw", default_value="0.0")
+    mid2_tf_parent_frame_arg = DeclareLaunchArgument("mid2_tf_parent_frame", default_value="base_link")
+    mid2_tf_child_frame_arg = DeclareLaunchArgument("mid2_tf_child_frame", default_value="mid2_base_link")
+
     small_point_lio_node = Node(
         package="small_point_lio",
         executable="small_point_lio_node",
@@ -61,6 +70,29 @@ def generate_launch_description():
         ],
     )
 
+    static_base_link_to_mid2_frame = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=[
+            "--x",
+            LaunchConfiguration("mid2_tf_x"),
+            "--y",
+            LaunchConfiguration("mid2_tf_y"),
+            "--z",
+            LaunchConfiguration("mid2_tf_z"),
+            "--roll",
+            LaunchConfiguration("mid2_tf_roll"),
+            "--pitch",
+            LaunchConfiguration("mid2_tf_pitch"),
+            "--yaw",
+            LaunchConfiguration("mid2_tf_yaw"),
+            "--frame-id",
+            LaunchConfiguration("mid2_tf_parent_frame"),
+            "--child-frame-id",
+            LaunchConfiguration("mid2_tf_child_frame"),
+        ],
+    )
+
     return LaunchDescription([
         save_pcd_arg,
         tf_x_arg,
@@ -71,6 +103,15 @@ def generate_launch_description():
         tf_yaw_arg,
         tf_parent_frame_arg,
         tf_child_frame_arg,
+        mid2_tf_x_arg,
+        mid2_tf_y_arg,
+        mid2_tf_z_arg,
+        mid2_tf_roll_arg,
+        mid2_tf_pitch_arg,
+        mid2_tf_yaw_arg,
+        mid2_tf_parent_frame_arg,
+        mid2_tf_child_frame_arg,
         small_point_lio_node,
         static_base_link_to_livox_frame,
+        static_base_link_to_mid2_frame,
     ])
