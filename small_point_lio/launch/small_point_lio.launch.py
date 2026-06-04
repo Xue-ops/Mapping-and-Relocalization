@@ -1,78 +1,25 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
-import yaml
-
-
-TF_DEFAULTS = {
-    "tf_x": "0.0",
-    "tf_y": "0.0",
-    "tf_z": "0.0",
-    "tf_roll": "0.0",
-    "tf_pitch": "0.0",
-    "tf_yaw": "0.0",
-    "tf_parent_frame": "base_link",
-    "tf_child_frame": "livox_frame",
-}
-
-
-def _load_small_point_lio_params(params_file):
-    with open(params_file, "r", encoding="utf-8") as f:
-        config = yaml.safe_load(f) or {}
-    return config.get("small_point_lio", {}).get("ros__parameters", {})
-
-
-def _tf_value(params, key):
-    return str(params.get(key, TF_DEFAULTS[key]))
-
-
-def launch_setup(context, *args, **kwargs):
-    params_file = LaunchConfiguration("params_file").perform(context)
-    params = _load_small_point_lio_params(params_file)
-
-    static_base_link_to_livox_frame = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        arguments=[
-            "--x",
-            _tf_value(params, "tf_x"),
-            "--y",
-            _tf_value(params, "tf_y"),
-            "--z",
-            _tf_value(params, "tf_z"),
-            "--roll",
-            _tf_value(params, "tf_roll"),
-            "--pitch",
-            _tf_value(params, "tf_pitch"),
-            "--yaw",
-            _tf_value(params, "tf_yaw"),
-            "--frame-id",
-            _tf_value(params, "tf_parent_frame"),
-            "--child-frame-id",
-            _tf_value(params, "tf_child_frame"),
-        ],
-    )
-
-    return [static_base_link_to_livox_frame]
 
 
 def generate_launch_description():
-    params_file = LaunchConfiguration("params_file")
-    default_params_file = PathJoinSubstitution(
-        [
-            FindPackageShare("small_point_lio"),
-            "config",
-            "mid360.yaml",
-        ]
+    save_pcd_arg = DeclareLaunchArgument(
+        "save_pcd",
+        default_value="false",
+        description="Whether to enable saving the accumulated point cloud.",
     )
-
-    params_file_arg = DeclareLaunchArgument(
-        "params_file",
-        default_value=default_params_file,
-        description="Path to small_point_lio parameter file.",
-    )
+    tf_x_arg = DeclareLaunchArgument("tf_x", default_value="0.0")
+    tf_y_arg = DeclareLaunchArgument("tf_y", default_value="0.0")
+    tf_z_arg = DeclareLaunchArgument("tf_z", default_value="0.0")
+    tf_roll_arg = DeclareLaunchArgument("tf_roll", default_value="0.0")
+    tf_pitch_arg = DeclareLaunchArgument("tf_pitch", default_value="0.0")
+    tf_yaw_arg = DeclareLaunchArgument("tf_yaw", default_value="0.0")
+    tf_parent_frame_arg = DeclareLaunchArgument("tf_parent_frame", default_value="base_link")
+    tf_child_frame_arg = DeclareLaunchArgument("tf_child_frame", default_value="livox_frame")
 
     small_point_lio_node = Node(
         package="small_point_lio",
@@ -80,13 +27,50 @@ def generate_launch_description():
         name="small_point_lio",
         output="screen",
         parameters=[
-            default_params_file,
-            params_file,
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("small_point_lio"),
+                    "config",
+                    "mid360.yaml",
+                ]
+            ),
+            {"save_pcd": ParameterValue(LaunchConfiguration("save_pcd"), value_type=bool)},
+        ],
+    )
+
+    static_base_link_to_livox_frame = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=[
+            "--x",
+            LaunchConfiguration("tf_x"),
+            "--y",
+            LaunchConfiguration("tf_y"),
+            "--z",
+            LaunchConfiguration("tf_z"),
+            "--roll",
+            LaunchConfiguration("tf_roll"),
+            "--pitch",
+            LaunchConfiguration("tf_pitch"),
+            "--yaw",
+            LaunchConfiguration("tf_yaw"),
+            "--frame-id",
+            LaunchConfiguration("tf_parent_frame"),
+            "--child-frame-id",
+            LaunchConfiguration("tf_child_frame"),
         ],
     )
 
     return LaunchDescription([
-        params_file_arg,
+        save_pcd_arg,
+        tf_x_arg,
+        tf_y_arg,
+        tf_z_arg,
+        tf_roll_arg,
+        tf_pitch_arg,
+        tf_yaw_arg,
+        tf_parent_frame_arg,
+        tf_child_frame_arg,
         small_point_lio_node,
-        OpaqueFunction(function=launch_setup),
+        static_base_link_to_livox_frame,
     ])
