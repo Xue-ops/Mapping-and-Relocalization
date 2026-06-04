@@ -1,0 +1,27 @@
+small_point_lio:
+  ros__parameters:
+    save_pcd: false
+    tf_x: 0.0
+    tf_y: 0.0
+    tf_z: 0.0
+    tf_roll: 0.0
+    tf_pitch: 0.0
+    tf_yaw: 0.0
+    tf_parent_frame: base_link
+    tf_child_frame: livox_frame
+
+small_gicp_relocalization:
+  ros__parameters:
+    num_threads: 4
+    num_neighbors: 10
+    global_leaf_size: 0.25
+    registered_leaf_size: 0.25
+    max_dist_sq: 1.0
+    map_frame: map
+    odom_frame: odom
+    base_frame: ""
+    robot_base_frame: ""
+    lidar_frame: ""
+    prior_pcd_file: /home/xli/catkin_ws/src/mapping_relocalization/small_point_lio/pcd/scan.pcd
+    init_pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    input_cloud_topic: cloud_registered
