@@ -1,0 +1,15 @@
+small_gicp_relocalization:
+  ros__parameters:
+    num_threads: 4
+    num_neighbors: 10
+    global_leaf_size: 0.25
+    registered_leaf_size: 0.25
+    max_dist_sq: 1.0
+    map_frame: map
+    odom_frame: odom
+    base_frame: ""
+    robot_base_frame: ""
+    lidar_frame: ""
+    prior_pcd_file: /home/xli/catkin_ws/src/mapping_relocalization/small_point_lio/pcd/scan.pcd
+    init_pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    input_cloud_topic: cloud_registered
