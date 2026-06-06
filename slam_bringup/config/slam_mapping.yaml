@@ -1,11 +1,11 @@
 small_point_lio:
   ros__parameters:
     save_pcd: true
-    tf_x: 0.0
-    tf_y: 0.0
-    tf_z: 0.0
-    tf_roll: 0.0
+    tf_x: 0.0025
+    tf_y: -0.13509
+    tf_z: 0.29325
+    tf_roll: -0.785398
     tf_pitch: 0.0
-    tf_yaw: 0.0
+    tf_yaw: 3.1415926
     tf_parent_frame: base_link
     tf_child_frame: livox_frame
