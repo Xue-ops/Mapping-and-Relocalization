@@ -20,9 +20,9 @@ small_gicp_relocalization:
     max_dist_sq: 1.0
     map_frame: map
     odom_frame: odom
-    base_frame: ""
-    robot_base_frame: ""
-    lidar_frame: ""
-    prior_pcd_file: /home/xli/catkin_ws/src/mapping_relocalization/small_point_lio/pcd/scan.pcd
+    base_frame: base_link
+    robot_base_frame: base_link
+    lidar_frame: livox_frame
+    prior_pcd_file: /home/wele/ros_ws/src/Mapping-and-Relocalization/small_point_lio/pcd/scan.pcd
     init_pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     input_cloud_topic: cloud_registered

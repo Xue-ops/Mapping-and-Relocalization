@@ -1,9 +1,10 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 import yaml
+import os
 
 
 YAML_VALUE = "__from_yaml__"
@@ -33,6 +34,10 @@ def _launch_setup(context, *args, **kwargs):
         return _to_launch_value(small_point_lio_params.get(name, default))
 
     relocalization_params_file = LaunchConfiguration("relocalization_params_file")
+    ld_library_path_no_mvs = ":".join(
+        p for p in os.environ.get("LD_LIBRARY_PATH", "").split(":")
+        if "/opt/MVS" not in p
+    )
 
     return [
         IncludeLaunchDescription(
@@ -64,17 +69,26 @@ def _launch_setup(context, *args, **kwargs):
             }.items(),
         ),
 
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution([
-                    FindPackageShare("small_gicp_relocalization"),
-                    "launch",
-                    "small_gicp_relocalization_launch.py",
-                ])
-            ),
-            launch_arguments={
-                "params_file": relocalization_params_file,
-            }.items(),
+        GroupAction(
+            actions=[
+                SetEnvironmentVariable(
+                    name="LD_LIBRARY_PATH",
+                    value=ld_library_path_no_mvs,
+                ),
+
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([
+                            FindPackageShare("small_gicp_relocalization"),
+                            "launch",
+                            "small_gicp_relocalization_launch.py",
+                        ])
+                    ),
+                    launch_arguments={
+                        "params_file": relocalization_params_file,
+                    }.items(),
+                ),
+            ]
         ),
     ]
 
