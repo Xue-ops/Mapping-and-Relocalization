@@ -42,6 +42,10 @@ def _launch_setup(context, *args, **kwargs):
                 ])
             ),
             launch_arguments={
+                "lidar_topic": param("lidar_topic", "/livox/lidar"),
+                "imu_topic": param("imu_topic", "/livox/imu"),
+                "lidar_type": param("lidar_type", "livox_pointcloud2"),
+                "lidar_frame": param("lidar_frame", "livox_frame"),
                 "save_pcd": param("save_pcd", True),
                 "tf_x": param("tf_x", 0.0),
                 "tf_y": param("tf_y", 0.0),
@@ -72,6 +76,10 @@ def generate_launch_description():
     ])
 
     small_point_lio_arg_names = [
+        "lidar_topic",
+        "imu_topic",
+        "lidar_type",
+        "lidar_frame",
         "save_pcd",
         "tf_x",
         "tf_y",

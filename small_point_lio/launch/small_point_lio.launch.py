@@ -7,6 +7,10 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    lidar_topic_arg = DeclareLaunchArgument("lidar_topic", default_value="/livox/lidar")
+    imu_topic_arg = DeclareLaunchArgument("imu_topic", default_value="/livox/imu")
+    lidar_type_arg = DeclareLaunchArgument("lidar_type", default_value="livox_pointcloud2")
+    lidar_frame_arg = DeclareLaunchArgument("lidar_frame", default_value="livox_frame")
     save_pcd_arg = DeclareLaunchArgument(
         "save_pcd",
         default_value="false",
@@ -43,6 +47,12 @@ def generate_launch_description():
                     "mid360.yaml",
                 ]
             ),
+            {
+                "lidar_topic": LaunchConfiguration("lidar_topic"),
+                "imu_topic": LaunchConfiguration("imu_topic"),
+                "lidar_type": LaunchConfiguration("lidar_type"),
+                "lidar_frame": LaunchConfiguration("lidar_frame"),
+            },
             {"save_pcd": ParameterValue(LaunchConfiguration("save_pcd"), value_type=bool)},
         ],
     )
@@ -94,6 +104,10 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        lidar_topic_arg,
+        imu_topic_arg,
+        lidar_type_arg,
+        lidar_frame_arg,
         save_pcd_arg,
         tf_x_arg,
         tf_y_arg,
