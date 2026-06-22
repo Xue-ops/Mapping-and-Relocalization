@@ -14,6 +14,15 @@ small_point_lio:
     tf_parent_frame: base_link
     tf_child_frame: mid360_front_frame 
 
+    mid_tf_x: 0.0
+    mid_tf_y: 0.0
+    mid_tf_z: 0.0
+    mid_tf_roll: 0.0
+    mid_tf_pitch: 0.0
+    mid_tf_yaw: 0.0
+    mid_tf_parent_frame: base_link
+    mid_tf_child_frame: mid360_back_frame
+
 
 small_gicp_relocalization:
   ros__parameters:
