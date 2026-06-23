@@ -3,13 +3,22 @@ small_point_lio:
     lidar_topic: /mid360_front/lidar                 # 点云话题名
     imu_topic: /mid360_front/imu                      # IMU话题名
     lidar_type: livox_pointcloud2              # 雷达类型 livox_custom_msg, livox_pointcloud2, custom_mid360_driver, unilidar
-    lidar_frame: mid360_front_frame                     # 雷达坐标系
+    lidar_frame: mid360_front_frame                   # 雷达坐标系
     save_pcd: true
-    tf_x: 0.0025
-    tf_y: -0.13509
-    tf_z: 0.29325
+    tf_x: -0.0005
+    tf_y: 0.143336
+    tf_z: 0.353036
     tf_roll: -0.785398
     tf_pitch: 0.0
-    tf_yaw: 3.1415926
+    tf_yaw: 0.0
     tf_parent_frame: base_link
-    tf_child_frame: mid360_front_frame
+    tf_child_frame: mid360_front_frame 
+
+    mid2_tf_x:  0.0425
+    mid2_tf_y: -0.17337
+    mid2_tf_z: 0.40591
+    mid2_tf_roll: 0.785398
+    mid2_tf_pitch: 0.0
+    mid2_tf_yaw: 0.0
+    mid2_tf_parent_frame: base_link
+    mid2_tf_child_frame: mid360_back_frame
