@@ -1,6 +1,6 @@
 small_point_lio:
   ros__parameters:
-    lidar_topic: /mid360_front/lidar                 # 点云话题名
+    lidar_topic: /mid360_front/lidar_filtered                # 点云话题名
     imu_topic: /mid360_front/imu                      # IMU话题名
     lidar_type: livox_pointcloud2              # 雷达类型 livox_custom_msg, livox_pointcloud2, custom_mid360_driver, unilidar
     lidar_frame: mid360_front_frame                   # 雷达坐标系
