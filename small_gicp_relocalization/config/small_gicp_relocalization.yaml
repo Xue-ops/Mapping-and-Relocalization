@@ -2,6 +2,10 @@ small_gicp_relocalization:
   ros__parameters:
     num_threads: 4
     num_neighbors: 10
+    success_count: 0
+    success_threshold: 10
+    success_translation_threshold: 0.05
+    success_rotation_threshold: 0.05
     global_leaf_size: 0.25
     registered_leaf_size: 0.25
     max_dist_sq: 1.0

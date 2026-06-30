@@ -30,6 +30,10 @@ SmallGicpRelocalizationNode::SmallGicpRelocalizationNode(const rclcpp::NodeOptio
 {
   this->declare_parameter("num_threads", 4);
   this->declare_parameter("num_neighbors", 20);
+  this->declare_parameter("success_count", 0);
+  this->declare_parameter("success_threshold", 10);
+  this->declare_parameter("success_translation_threshold", 0.05);
+  this->declare_parameter("success_rotation_threshold", 0.05);
   this->declare_parameter("global_leaf_size", 0.25);
   this->declare_parameter("registered_leaf_size", 0.25);
   this->declare_parameter("max_dist_sq", 1.0);
@@ -44,6 +48,10 @@ SmallGicpRelocalizationNode::SmallGicpRelocalizationNode(const rclcpp::NodeOptio
 
   this->get_parameter("num_threads", num_threads_);
   this->get_parameter("num_neighbors", num_neighbors_);
+  this->get_parameter("success_count", success_count_);
+  this->get_parameter("success_threshold", success_threshold_);
+  this->get_parameter("success_translation_threshold", success_translation_threshold_);
+  this->get_parameter("success_rotation_threshold", success_rotation_threshold_);
   this->get_parameter("global_leaf_size", global_leaf_size_);
   this->get_parameter("registered_leaf_size", registered_leaf_size_);
   this->get_parameter("max_dist_sq", max_dist_sq_);
@@ -115,8 +123,15 @@ void SmallGicpRelocalizationNode::loadGlobalMap(const std::string & file_name)
   RCLCPP_INFO(this->get_logger(), "Loaded global map with %zu points", global_map_->points.size());
 
   // NOTE: Transform global pcd_map (based on `lidar_odom` frame) to the `odom` frame
-  Eigen::Affine3d odom_to_lidar_odom;
-  while (true) {
+  if (base_frame_.empty() || lidar_frame_.empty()) {
+    RCLCPP_INFO(
+      this->get_logger(),
+      "base_frame or lidar_frame is empty. Using identity transform for the global map.");
+    return;
+  }
+
+  Eigen::Affine3d odom_to_lidar_odom = Eigen::Affine3d::Identity();
+  while (rclcpp::ok()) {
     try {
       auto tf_stamped = tf_buffer_->lookupTransform(
         base_frame_, lidar_frame_, this->now(), rclcpp::Duration::from_seconds(1.0));
@@ -165,6 +180,14 @@ void SmallGicpRelocalizationNode::performRegistration()
     return;
   }
 
+  if (success_threshold_ > 0 && success_count_ >= success_threshold_) {
+    RCLCPP_DEBUG_THROTTLE(
+      this->get_logger(), *this->get_clock(), 5000,
+      "Relocalization result is stable. Keeping the last map->odom transform.");
+    accumulated_cloud_->clear();
+    return;
+  }
+
   register_->reduction.num_threads = num_threads_;
   register_->rejector.max_dist_sq = max_dist_sq_;
   register_->optimizer.max_iterations = 10;
@@ -172,8 +195,39 @@ void SmallGicpRelocalizationNode::performRegistration()
   auto result = register_->align(*target_, *source_, *target_tree_, previous_result_t_);
 
   if (result.converged) {
-    result_t_ = previous_result_t_ = result.T_target_source;
+    const Eigen::Isometry3d current_result_t = result.T_target_source;
+    const double translation_diff =
+      (current_result_t.translation() - previous_result_t_.translation()).norm();
+    const double rotation_diff =
+      Eigen::AngleAxisd(previous_result_t_.rotation().inverse() * current_result_t.rotation())
+        .angle();
+
+    result_t_ = current_result_t;
+
+    if (
+      translation_diff < success_translation_threshold_ &&
+      rotation_diff < success_rotation_threshold_) {
+      ++success_count_;
+      RCLCPP_INFO(
+        this->get_logger(),
+        "Stable GICP result: success_count=%d/%d, translation_diff=%.6f, rotation_diff=%.6f",
+        success_count_, success_threshold_, translation_diff, rotation_diff);
+    } else {
+      success_count_ = 0;
+      RCLCPP_INFO(
+        this->get_logger(),
+        "GICP result changed: translation_diff=%.6f, rotation_diff=%.6f. Reset success_count.",
+        translation_diff, rotation_diff);
+    }
+
+    if (success_threshold_ <= 0 || success_count_ < success_threshold_) {
+      previous_result_t_ = current_result_t;
+    } else {
+      RCLCPP_INFO(
+        this->get_logger(), "Relocalization reached stable threshold. Freezing map->odom updates.");
+    }
   } else {
+    success_count_ = 0;
     RCLCPP_WARN(this->get_logger(), "GICP did not converge.");
   }
 
@@ -228,6 +282,7 @@ void SmallGicpRelocalizationNode::initialPoseCallback(
     Eigen::Isometry3d map_to_odom = map_to_robot_base * robot_base_to_odom;
 
     previous_result_t_ = result_t_ = map_to_odom;
+    success_count_ = 0;
   } catch (tf2::TransformException & ex) {
     RCLCPP_WARN(
       this->get_logger(), "Could not transform initial pose from %s to %s: %s",

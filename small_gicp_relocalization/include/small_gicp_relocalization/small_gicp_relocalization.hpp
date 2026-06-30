@@ -52,6 +52,10 @@ private:
 
   int num_threads_;
   int num_neighbors_;
+  int success_count_;
+  int success_threshold_;
+  double success_translation_threshold_;
+  double success_rotation_threshold_;
   float global_leaf_size_;
   float registered_leaf_size_;
   float max_dist_sq_;
